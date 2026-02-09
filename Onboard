@@ -1,0 +1,165 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: OnboardingScreenFixed(),
+  ));
+}
+
+class OnboardingScreenFixed extends StatelessWidget {
+  const OnboardingScreenFixed({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          // LAYER 1: Gambar Latar Belakang (FULL SCREEN)
+          // Menggunakan Positioned.fill agar gambar mengisi seluruh layar
+          // sehingga pasti berada di belakang panel putih tanpa celah.
+          Positioned.fill(
+            child: Image.network(
+              'https://i.postimg.cc/CxZfCfmG/1.png',
+              fit: BoxFit.cover, // Memastikan gambar mengisi area tanpa terpotong aneh
+              errorBuilder: (context, error, stackTrace) =>
+                  Container(color: Colors.grey),
+            ),
+          ),
+          
+          // Opsional: Gradient hitam transparan di bawah agar teks putih (jika ada) lebih terbaca
+          // atau sekadar estetika transisi.
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.3), // Sedikit gelap di bawah
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // LAYER 2: Panel Putih Konten
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
+                ),
+              ),
+              padding: const EdgeInsets.fromLTRB(24, 32, 24, 40),
+              child: Column(
+                mainAxisSize: MainAxisSize.min, 
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Indikator dan Skip
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          _buildIndicator(isActive: true),
+                          const SizedBox(width: 8),
+                          _buildIndicator(isActive: false),
+                          const SizedBox(width: 8),
+                          _buildIndicator(isActive: false),
+                        ],
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text(
+                          'Skip',
+                          style: TextStyle(
+                            color: Color(0xFF50535E),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Title
+                  const Text(
+                    'Emergency Help, Right When It Matters',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700, 
+                      fontSize: 32,
+                      color: Color(0xFF262626),
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Sub-text
+                  const Text(
+                    'Find critical medical resources nearby in seconds when every moment counts.',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 16,
+                      color: Color(0xFF50535E),
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+
+                  // CTA Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF262626),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Next',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 18,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIndicator({required bool isActive}) {
+    return Container(
+      width: isActive ? 24 : 8,
+      height: 8,
+      decoration: BoxDecoration(
+        color: isActive ? const Color(0xFFE03E3E) : const Color(0xFFE0E0E0),
+        borderRadius: BorderRadius.circular(4),
+      ),
+    );
+  }
+}
