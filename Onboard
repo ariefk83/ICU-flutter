@@ -3,146 +3,172 @@ import 'package:flutter/material.dart';
 void main() {
   runApp(const MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: OnboardingScreenFixed(),
+    home: OnboardingScreen(),
   ));
 }
 
-class OnboardingScreenFixed extends StatelessWidget {
-  const OnboardingScreenFixed({super.key});
+class OnboardingScreen extends StatefulWidget {
+  const OnboardingScreen({super.key});
+
+  @override
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  // Data Slide
+  final List<Map<String, String>> onboardingData = [
+    {
+      "title": "Emergency Help, Right When It Matters",
+      "subtitle": "Find critical medical resources nearby in seconds when every moment counts.",
+      "image": "https://i.postimg.cc/CxZfCfmG/1.png",
+    },
+    {
+      "title": "Search & Broadcast in One Tap",
+      "subtitle": "Check ICU availability or send an emergency request to nearby hospitals instantly.",
+      "image": "https://i.postimg.cc/dV7TRT49/2.png",
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // LAYER 1: Gambar Latar Belakang (FULL SCREEN)
-          // Menggunakan Positioned.fill agar gambar mengisi seluruh layar
-          // sehingga pasti berada di belakang panel putih tanpa celah.
-          Positioned.fill(
-            child: Image.network(
-              'https://i.postimg.cc/CxZfCfmG/1.png',
-              fit: BoxFit.cover, // Memastikan gambar mengisi area tanpa terpotong aneh
-              errorBuilder: (context, error, stackTrace) =>
-                  Container(color: Colors.grey),
-            ),
-          ),
-          
-          // Opsional: Gradient hitam transparan di bawah agar teks putih (jika ada) lebih terbaca
-          // atau sekadar estetika transisi.
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.3), // Sedikit gelap di bawah
-                  ],
-                ),
-              ),
-            ),
+          // PageView untuk Slide yang bisa digeser
+          PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemCount: onboardingData.length,
+            itemBuilder: (context, index) {
+              return _buildPageContent(
+                title: onboardingData[index]['title']!,
+                subtitle: onboardingData[index]['subtitle']!,
+                image: onboardingData[index]['image']!,
+              );
+            },
           ),
 
-          // LAYER 2: Panel Putih Konten
+          // Overlay Panel Putih (Tetap di bawah, kontennya yang berubah)
           Align(
             alignment: Alignment.bottomCenter,
-            child: Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
+            child: _buildBottomPanel(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Widget untuk isi Slide (Gambar Fullscreen)
+  Widget _buildPageContent({required String title, required String subtitle, required String image}) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Image.network(
+            image,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey),
+          ),
+        ),
+        // Gradient gelap tipis agar panel putih terlihat menyatu
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.transparent, Colors.black.withOpacity(0.2)],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Widget Panel Putih yang statis posisinya
+  Widget _buildBottomPanel() {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
+      ),
+      padding: EdgeInsets.fromLTRB(24, 32, 24, 24 + MediaQuery.of(context).padding.bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: Indicator & Skip
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: List.generate(
+                  onboardingData.length,
+                  (index) => _buildIndicator(isActive: _currentPage == index),
                 ),
               ),
-              padding: const EdgeInsets.fromLTRB(24, 32, 24, 40),
-              child: Column(
-                mainAxisSize: MainAxisSize.min, 
-                crossAxisAlignment: CrossAxisAlignment.start,
+              TextButton(
+                onPressed: () {},
+                child: const Text('Skip', style: TextStyle(color: Color(0xFF50535E), fontSize: 16, fontWeight: FontWeight.w500)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Konten Teks yang berubah sesuai PageView
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: Column(
+              key: ValueKey<int>(_currentPage),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  onboardingData[_currentPage]['title']!,
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 32, color: Color(0xFF262626), height: 1.2),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  onboardingData[_currentPage]['subtitle']!,
+                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16, color: Color(0xFF50535E), height: 1.5),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 40),
+
+          // Tombol Next
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                if (_currentPage < onboardingData.length - 1) {
+                  _pageController.nextPage(duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF262626),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                elevation: 0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Indikator dan Skip
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          _buildIndicator(isActive: true),
-                          const SizedBox(width: 8),
-                          _buildIndicator(isActive: false),
-                          const SizedBox(width: 8),
-                          _buildIndicator(isActive: false),
-                        ],
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          'Skip',
-                          style: TextStyle(
-                            color: Color(0xFF50535E),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Title
-                  const Text(
-                    'Emergency Help, Right When It Matters',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700, 
-                      fontSize: 32,
-                      color: Color(0xFF262626),
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Sub-text
-                  const Text(
-                    'Find critical medical resources nearby in seconds when every moment counts.',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16,
-                      color: Color(0xFF50535E),
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-
-                  // CTA Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF262626),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Next',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 18,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_forward, color: Colors.white, size: 20),
-                        ],
-                      ),
-                    ),
-                  ),
+                  Text(_currentPage == onboardingData.length - 1 ? 'Get Started' : 'Next',
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: Colors.white)),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
                 ],
               ),
             ),
@@ -153,7 +179,9 @@ class OnboardingScreenFixed extends StatelessWidget {
   }
 
   Widget _buildIndicator({required bool isActive}) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: const EdgeInsets.only(right: 8),
       width: isActive ? 24 : 8,
       height: 8,
       decoration: BoxDecoration(
